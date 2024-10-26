@@ -4,17 +4,28 @@
 # ---- midi chord
 
 synth_nodes = []
+kill_nodes = []
 
 define :play_midi_note do | nt |
-  synth_nodes[nt] = play nt, sustain: 8, release: 1
+  synth_nodes[nt] = play nt, sustain: 16, release: 1
 end
 
 define :stop_midi_note do | nt |
   control synth_nodes[nt], amp: 0
-  synth_nodes[nt].kill
+  kill_nodes.append(synth_nodes[nt])
   synth_nodes[nt] = nil
+  cue :synth_nodes_cleanup
 end
 
+# ---- synth nodes garbage collection
+
+live_loop :kill_synth_nodes do
+  sync :synth_nodes_cleanup
+  for node in kill_nodes do
+    node.kill
+  end
+  kill_nodes = []
+end
 
 
 # ---- midi event capture
