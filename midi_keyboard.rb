@@ -1,12 +1,19 @@
 #  ---- ----  ----  ---- midi keyboard input
 
 
+# ---- midi synth defaults
+
+# use beep synth
+set :midi_synth, :beep
+
+
 # ---- midi chord
 
 synth_nodes = []
 kill_nodes = []
 
 define :play_midi_note do | nt |
+  use_synth (get :midi_synth)
   synth_nodes[nt] = play nt, sustain: 16, release: 1
 end
 
@@ -45,3 +52,4 @@ live_loop :midi_note_off do
   # get the synth node and stop playing the note
   stop_midi_note nt
 end
+
