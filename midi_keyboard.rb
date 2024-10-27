@@ -3,8 +3,10 @@
 
 # ---- midi synth defaults
 
-# use beep synth
+# use beep synth if no modulation
 set :midi_synth, :beep
+# use mod beep synth if modulation phase is non zero
+set :midi_mod_synth, :mod_beep
 
 # amp volume on ctrl 7, default 1, range 0 to 2
 ct_amp = 7
@@ -31,6 +33,14 @@ ct_release = 72
 range_release = [0.2,8]
 midi_release = range_release[0]
 
+# modulation phase on ctrl 1, default 0 (no modulation), range 1-0 to 1-0.95
+ct_mod_phase = 1
+range_mod_phase = [0,0.95]
+midi_mod_phase = 0
+# modulation range on pitch bend, default 0, range -12 to 12 (2 octaves)
+mod_range_factor = 24 / Float(16384)
+midi_mod_range = 0
+
 
 # ---- midi chord
 
@@ -38,13 +48,21 @@ synth_nodes = []
 kill_nodes = []
 
 define :play_midi_note do | nt |
-  use_synth (get :midi_synth)
+  # use mod synth if nonzero phase
+  if midi_mod_phase > 0
+    use_synth (get :midi_mod_synth)
+  else
+    use_synth (get :midi_synth)
+  end
   # play note using ADSR envelope
   synth_nodes[nt] = play nt, amp: midi_amp, 
     attack: midi_attack, 
     decay: midi_decay, 
     sustain: midi_sustain, 
-    release: midi_release
+    release: midi_release,
+  # modulation parameters are ignored on non mod synth
+    mod_phase: 1 - midi_mod_phase,
+    mod_range: midi_mod_range
 end
 
 define :stop_midi_note do | nt |
@@ -106,6 +124,16 @@ live_loop :midi_control_change do
     midi_sustain = (control_ponderation range_sustain, va)
   when ct_release
     midi_release = (control_ponderation range_release, va)
+  when ct_mod_phase
+    midi_mod_phase = (control_ponderation range_mod_phase, va)
   end
 end
 
+
+live_loop :midi_pich_change do
+  use_real_time
+  # sync pitch bend event
+  va = sync "/midi:midi_through_port-0:0:1/pitch_bend"
+  # default pitch bend 8K, range 0..16K maps on octaves range
+  midi_mod_range = (va[0] - 8192) * mod_range_factor
+end
