@@ -85,6 +85,19 @@ live_loop :kill_synth_nodes do
 end
 
 
+# ---- modulation changed
+
+define :synth_modulation_update do
+  for node in synth_nodes do
+    if node
+      control node, 
+        mod_phase: 1 - midi_mod_phase,
+        mod_range: midi_mod_range
+    end
+  end
+end
+
+
 # ---- midi event capture
 
 live_loop :midi_note_on do
@@ -126,6 +139,8 @@ live_loop :midi_control_change do
     midi_release = (control_ponderation range_release, va)
   when ct_mod_phase
     midi_mod_phase = (control_ponderation range_mod_phase, va)
+    # update modulation phase on synth nodes
+    synth_modulation_update
   end
 end
 
@@ -136,4 +151,6 @@ live_loop :midi_pich_change do
   va = sync "/midi:midi_through_port-0:0:1/pitch_bend"
   # default pitch bend 8K, range 0..16K maps on octaves range
   midi_mod_range = (va[0] - 8192) * mod_range_factor
+  # update modulation range on synth nodes
+  synth_modulation_update
 end
