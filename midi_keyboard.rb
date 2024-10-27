@@ -48,7 +48,8 @@ define :play_midi_note do | nt |
 end
 
 define :stop_midi_note do | nt |
-  control synth_nodes[nt], amp: 0
+  # silence note with release duration
+  control synth_nodes[nt], amp: 0, amp_slide: midi_release
   kill_nodes.append(synth_nodes[nt])
   synth_nodes[nt] = nil
   cue :synth_nodes_cleanup
@@ -58,8 +59,9 @@ end
 
 live_loop :kill_synth_nodes do
   sync :synth_nodes_cleanup
+  sleep midi_release
   for node in kill_nodes do
-    node.kill
+    node.kill if node
   end
   kill_nodes = []
 end
