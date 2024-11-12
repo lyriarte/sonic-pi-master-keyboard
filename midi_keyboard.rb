@@ -7,7 +7,16 @@
 set :midi_synth, :beep
 # use mod beep synth if modulation phase is non zero
 set :midi_mod_synth, :mod_beep
-
+# synth list mapped on lower notes
+synth_map = [
+  [:beep, :mod_beep],
+  [:dsaw, :mod_dsaw],
+  [:fm, :mod_fm],
+  [:pulse, :mod_pulse],
+  [:saw, :mod_saw],
+  [:sine, :mod_sine],
+  [:tri, :mod_tri],
+]
 # amp volume on ctrl 7, default 1, range 0 to 2
 ct_amp = 7
 range_amp = [0,2]
@@ -89,8 +98,14 @@ live_loop :midi_note_on do
   use_real_time
   # sync keydown event
   nt, vl = sync "/midi:midi_through_port-0:0:1/note_on"
+  if nt < synth_map.length
+  # use lower notes to change synth
+    set :midi_synth, synth_map[nt][0]
+    set :midi_mod_synth, synth_map[nt][1]
+  else
   # play the note now and store the synth node
-  play_midi_note nt
+    play_midi_note nt
+  end
 end
 
 live_loop :midi_note_off do
