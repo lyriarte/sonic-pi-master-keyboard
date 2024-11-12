@@ -9,13 +9,18 @@ set :midi_synth, :beep
 set :midi_mod_synth, :mod_beep
 # synth list mapped on lower notes
 synth_map = [
-  [:beep, :mod_beep],
+  [:beep, :mod_beep],     # C1
   [:dsaw, :mod_dsaw],
-  [:fm, :mod_fm],
+  [:fm, :mod_fm],         # D1
   [:pulse, :mod_pulse],
-  [:saw, :mod_saw],
-  [:sine, :mod_sine],
+  [:saw, :mod_saw],       # E1
+  [:sine, :mod_sine],     # F1
   [:tri, :mod_tri],
+  [:noise, :mod_pulse],   # G1
+  [:piano, :mod_pulse],
+  [:pluck, :mod_pulse],   # A1
+  [:pretty_bell, :mod_pulse],
+  [:tb303, :mod_pulse],   # B1
 ]
 # amp volume on ctrl 7, default 1, range 0 to 2
 ct_amp = 7
